@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String      @id @default(cuid())
+  email        String      @unique
+  passwordHash String
+  role         String
+  contractor   Contractor?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Contractor {
+  id              String           @id @default(cuid())
+  userId          String?          @unique
+  user            User?            @relation(fields: [userId], references: [id])
+  businessName    String
+  contactName     String
+  email           String           @unique
+  phone           String
+  status          String           @default("PENDING")
+  categories      String[]
+  serviceZips     String[]
+  monthlyLeadCap  Int?
+  webhookUrl      String?
+  webhookSecret   String?
+  bio             String?
+  licenseNumber   String?
+  yearsInBusiness Int?
+  city            String?
+  state           String?
+  assignments     LeadAssignment[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([status])
+}
+
+model Lead {
+  id               String           @id @default(cuid())
+  publicToken      String           @unique @default(cuid())
+  zip              String
+  category         String
+  projectDetails   Json
+  timeline         String
+  homeownerStatus  String
+  firstName        String
+  lastName         String
+  email            String
+  phone            String
+  utmSource        String?
+  utmMedium        String?
+  utmCampaign      String?
+  utmTerm          String?
+  utmContent       String?
+  gclid            String?
+  fbclid           String?
+  consentText      String
+  consentAt        DateTime
+  consentIp        String
+  consentUserAgent String
+  consentPageUrl   String
+  status           String
+  notes            String?
+  assignments      LeadAssignment[]
+  deliveries       Delivery[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([status, createdAt])
+  @@index([category])
+  @@index([zip])
+}
+
+model LeadAssignment {
+  id           String     @id @default(cuid())
+  leadId       String
+  lead         Lead       @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  contractorId String
+  contractor   Contractor @relation(fields: [contractorId], references: [id])
+  status       String     @default("SENT")
+  createdAt    DateTime   @default(now())
+
+  @@unique([leadId, contractorId])
+  @@index([contractorId, status, createdAt])
+}
+
+model Delivery {
+  id           String   @id @default(cuid())
+  leadId       String
+  lead         Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  contractorId String?
+  channel      String
+  provider     String
+  status       String
+  target       String
+  detail       String?
+  createdAt    DateTime @default(now())
+
+  @@index([leadId])
+}

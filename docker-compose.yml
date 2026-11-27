@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: homepros
+      POSTGRES_PASSWORD: homepros
+      POSTGRES_DB: homepros
+    ports:
+      - "5432:5432"
+    volumes:
+      - homepros-pg:/var/lib/postgresql/data
+
+volumes:
+  homepros-pg:
